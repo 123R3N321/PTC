@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 // Heap Sort
 void recursive_branch_swap(int *lst, int size);
