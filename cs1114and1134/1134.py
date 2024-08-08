@@ -2,6 +2,11 @@
 summer 2024 midterm 2234 recursion problem:
 count the number of ways you can represent a number as
 sum of 1s and 2s
+
+tested concepta:
+    recursion
+    runtime analysis
+
 '''
 def recur(num):
     if 2 > num:
