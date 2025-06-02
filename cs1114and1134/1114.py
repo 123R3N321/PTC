@@ -1,6 +1,7 @@
 '''
 this is all 1114 problems
 '''
+import copy
 
 #########################################################################################
 '''
@@ -41,3 +42,56 @@ def right():    #this is how it is fixed!
 
 
 #####################################################################################
+lst = [1,1,1]
+lst.insert(1,3)
+print(lst)
+n = 5
+# for i in range(n):
+#     print(" "*(n-1-i),'X'*(2*i+1))
+lst2 = [i*i if i%2==0 else i for i in range(1,n+1)]
+print(f"lst2 is: {lst2}")
+
+a = [1,2,3,[4,5,6]]
+b = copy.deepcopy(a)
+c = a
+c[3][1]*=10
+a[0] = 0
+b[3][2] = 1
+print(f"a is: {a}")
+print(f"b is: {b}")
+print(f"c is: {c}")
+print("-------------------------")
+
+total = 298.05
+denom = 60
+
+emma = 10
+ms = 20
+varya = 15
+ren = 15
+
+def calc(ra):
+    global total, denom
+    return (ra/denom)*total
+
+print(f"emma is: {calc(emma)}\tms is: {calc(ms)}\tvarya is: {calc(varya)}\tren is: {calc(ren)}")
+
+n = 6
+k = n&(n-1)
+if (k):
+    print()
+else:
+    print("don work")
+
+print()
+lst = [x**2 if not x%2 else x for x in range(1,6) ]
+print(lst)
+lst.remove(3)
+print(lst)
+
+def recur(root):
+    if not root:
+        return
+    root.left, root.right = root.right, root.left
+    recur(root.left)
+    recur(root.right)
