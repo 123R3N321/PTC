@@ -94,28 +94,78 @@ def q334(arr):
     return False
 
 
+'''
+sliding window approach
+we have k quota amount of 
+good check
 
-def q11(arr):
-    i1 = 0
-    i2 = len(arr)-1
-    res = findArea(arr, i1, i2)
-    while i1<i2:
-        curr1 = arr[i1]
-        curr2 = arr[i2]
-        if curr1<curr2:
-            i1 += 1
-            res = max(res, findArea(arr, i1, i2))
-        elif curr2<=curr1:
-            i2 -= 1
-            res = max(res, findArea(arr, i1, i2))
-    return res
+iterate thru array
 
+    if ct > currentMAx, currentMax set to ct
+    
+    if we see 0 and there is quota left,
+        pass good check, add ct by 1, remember where we flipped (use queue)
+    else:
+        if we see 1:
+        simply add ct by 1 
+        
+        otherwise we see 0: # implied no quota left
+            abandon previous flip,
+            remember ind pos previous flip+1 till right here as ct
 
+'''
+from collections import deque
+def q1004(arr,k):
+    if k==0: return edgeCase(arr)
+    curMax = 0
+    ct = 0
+    flipRecord = deque()
+    for i in range(len(arr)):
+        if ct>curMax:
+            curMax = ct
 
-def findArea(arr, i1, i2):
-    return (i2-i1)*min(arr[i1], arr[i2])
+        if arr[i]==0 and k>0:
+            flipRecord.append(i)
+            k-=1
+            ct+=1
+        else:
+            if arr[i]==1:
+                ct+=1
+            else:   #implied: arr[i] != 1 and k<=0
+                ct = i-flipRecord.popleft()
+                flipRecord.append(i)
+    if ct>curMax:
+        curMax = ct
+    return curMax
+
+def edgeCase(arr):  #edge case k==0
+    curMax = 0
+    cur = 0
+    for i in arr:
+        if cur>curMax:
+            curMax = cur
+        if i==1:
+            cur+=1
+        else:
+            cur = 0
+    if cur>curMax:
+        curMax = cur
+    return curMax
+
+def q1493(arr):
+    return q1004(arr, 1)-1
+'''
+I think q1493, which uses q1004, should lead to
+both of them preserved in my record
+while 1004 is very easy, it is a stunningly
+creative solution if you develop q1493
+without doing 1004 firsthand.
+This is worth remembering.
+'''
+
 
 # test code
 if __name__ == '__main__':
-    arr = [1,8,6,2,5,4,8,3,7]
-    print(q11(arr))
+    nums = [0,1,1,1,0,1,1,0,1]
+    k =4
+    print(q1493(nums))
