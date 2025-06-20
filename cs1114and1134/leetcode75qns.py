@@ -769,6 +769,238 @@ def elegant236(root, node1, node2):
             return None #guaranteed not going to happen but a good failsafe
 
 
+'''
+ahh, I accidentally spoilered myself by
+looking at the sub header of the leetcode75
+lesson here: do NOT look at those sub headers!
+
+anyways, this problem is clearly a bfs problem
+go level by level and only retain the last node
+per level
+'''
+
+'''
+ok, using queue would make this problem
+stupid. 
+'''
+def recurRight(lvlLst,resLst):
+    if len(lvlLst)==0:
+        return
+    resLst.append(lvlLst[-1].val)   #guaranteed not empty list
+    localLst = []
+    for each in lvlLst:
+        if each.left:
+            localLst.append(each.left)
+        if each.right:
+            localLst.append(each.right)
+    recurRight(localLst,resLst)
+
+def q199(root):
+    if not root: return []
+    resLst = []
+    recurRight([root],resLst)
+    return resLst
+
+'''
+ok, let's do a queue version
+'''
+from collections import deque
+
+def qVer199(root):
+    if not root: return []
+    q = deque()
+    q.append(root)
+    res = [root.val]
+    tempoQ = deque()
+    while q:
+        while q:
+            cur = q.popleft()
+            if cur.left:
+                tempoQ.append(cur.left)
+            if cur.right:
+                tempoQ.append(cur.right)
+        if tempoQ:
+            res.append(tempoQ[-1].val)
+        qtransfer(tempoQ,q)
+    return res
+def qtransfer(fromq, toq):
+    if toq:
+        raise Exception(f'target q {toq} is not empty')
+    while fromq:    #need to empty it out
+        toq.append(fromq.popleft())
+
+
+'''
+now q1161 seems straightaway boring...
+'''
+def levelSumRecur(lvlLst, bestVal, bestLvl, curLvl): #guaranteed root not None
+    if len(lvlLst)==0:
+        return bestLvl
+    localLst = []
+    curVal = getLvlSum(lvlLst)
+    if curVal>bestVal:   #strictly greater than
+        bestVal = curVal
+        bestLvl = curLvl
+    for each in lvlLst:
+        if each.left:
+            localLst.append(each.left)
+        if each.right:
+            localLst.append(each.right)
+    return levelSumRecur(localLst, bestVal, bestLvl, curLvl+1)
+
+'''
+ok let's do a queue version
+'''
+
+from collections import deque
+
+def Qver1161(root):
+    q = deque()
+    tempoQ = deque()
+    q.append(root)  #guaranteed not None node
+    curLvl = 0
+    bestLvl = 1
+    bestSum = float('-inf')
+    while q:
+        curLvl += 1
+        curSum = 0
+        while q:
+            cur = q.popleft()
+            curSum += cur.val
+            if cur.right:   #left-right order does not matter here
+                tempoQ.append(cur.right)
+            if cur.left:
+                tempoQ.append(cur.left)
+        if curSum > bestSum:
+            bestSum = curSum
+            bestLvl = curLvl
+        qtransfer(tempoQ,q)
+
+    return bestLvl
+
+def getLvlSum(lvlLst):
+    res = 0
+    for eachNode in lvlLst:
+        res+=eachNode.val
+    return res
+
+'''
+bst node deletion also dumb
+'''
+
+def findTargetParent(root, target, parent, side):
+    if not root:
+        return None, None   #if findable, should never happen
+    if root.val == target:
+        return parent, side
+    if root.val > target:
+        return findTargetParent(root.left, target, root, 0)
+    if root.val < target:
+        return findTargetParent(root.right, target, root, 1)
+    return None, None #never gets here
+'''
+given a root, find its leftmost child
+to be used on the right subtree of the kill target
+'''
+def findReplacement(root, parent=None, side=1):
+    # Find the leftmost node in the subtree rooted at `root`
+    while root and root.left:
+        parent = root
+        root = root.left
+        side = 0
+    return root, parent, side
+
+#edge case overall root is target, return the new root
+def edgeCase(root):
+    if not root.left and not root.right:
+        return None #simply have an empty tree now
+    if not root.left:
+        return root.right
+    if not root.right:
+        return root.left
+
+    # In-order successor (leftmost in right subtree)
+    replacement, parent, side = findReplacement(root.right, root, 1)
+
+    # Detach replacement from its parent
+    if parent != root:
+        parent.left = replacement.right
+        replacement.right = root.right  # attach full right subtree
+
+    # Always attach left subtree
+    replacement.left = root.left
+
+    return replacement
+
+
+def deleteNode(root, target):
+    if not root:
+        return None
+    if root.val == target:
+        return edgeCase(root)
+    parent, side = findTargetParent(root, target, None, 0)  #side is a dummy value at the beginning
+    if not parent:
+        return root
+
+    #simply replace the killed node with the leftmost child of right sub
+    if 0==side: #kill target is left child
+        kill = parent.left
+        if not kill.right:
+            parent.left = kill.left
+            return root
+
+        if not kill.left:
+            parent.left = kill.right
+            return root
+        #kill target has both kids
+        replacement, replacementParent, replacementSide =findReplacement(kill.right, kill, 1)
+
+        # Detach replacement from its current location
+        if replacementParent != kill:
+            if replacementSide == 0:
+                replacementParent.left = replacement.right
+            else:
+                replacementParent.right = replacement.right
+            replacement.right = kill.right  # safe: replacement is deeper in right subtree
+
+        replacement.left = kill.left
+
+        # Reassign parent's child to replacement
+        if side == 0:
+            parent.left = replacement
+        else:
+            parent.right = replacement
+
+        return root
+    if 1==side:
+        kill = parent.right
+        if not kill.right:
+            parent.right = kill.left
+            return root
+
+        if not kill.left:
+            parent.right = kill.right
+            return root
+        #kill target has both kids
+        replacement, replacementParent, replacementSide = findReplacement(kill.right, kill, 1)
+
+        # Detach replacement from its current location
+        if replacementParent != kill:
+            if replacementSide == 0:
+                replacementParent.left = replacement.right
+            else:
+                replacementParent.right = replacement.right
+            replacement.right = kill.right  # safe: replacement is deeper in right subtree
+
+        replacement.left = kill.left
+
+        # Reassign parent's child to replacement
+        if side == 0:
+            parent.left = replacement
+        else:
+            parent.right = replacement
+
+        return root
 
 # test code
 if __name__ == '__main__':
