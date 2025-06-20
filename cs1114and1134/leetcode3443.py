@@ -107,12 +107,11 @@ demo:
 '''
 from collections import defaultdict
 
-def supershort(path,k):
+def supershort(s,k):
     curMax = 0
-    ct = defaultdict(int)
-    for i in range(len(path)):
-        ct[path[i]]+=1
-        curMax = max(curMax, min(i+1, abs(ct['N']-ct['S'])+abs(ct['E']-ct['W'])+2*k))
+    ct = {c: s.count(c) for c in set(s)}    # first of all, this is super-NOT-readable AND wayy overkill: you are using a hashmap for only 4 possible keys???!
+    for i in range(len(s)):
+        curMax = max(curMax, min(i+1, abs(ct['N']-ct['S'])+abs(ct['E']-ct['W'])+2*k))   #like WHY WOULD YOU DO THIS
     return curMax
 
 
