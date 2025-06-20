@@ -103,16 +103,37 @@ sometimes looks scary for no good reason at all
 don't show off by making your code unreadable!
 
 demo:
-...and you can cook up some monstrous looking pasta like this below:
+...and you can cook up some monstrous looking pasta like these below:
 '''
 from collections import defaultdict
 
-def supershort(s,k):
+def supershort(path,k):
     curMax = 0
-    ct = {c: s.count(c) for c in set(s)}    # first of all, this is super-NOT-readable AND wayy overkill: you are using a hashmap for only 4 possible keys???!
-    for i in range(len(s)):
-        curMax = max(curMax, min(i+1, abs(ct['N']-ct['S'])+abs(ct['E']-ct['W'])+2*k))   #like WHY WOULD YOU DO THIS
+    ct = defaultdict(int)   #overkill with hashmap since only 4 possible keys
+    for i in range(len(path)):
+        ct[path[i]]+=1
+        curMax = max(curMax, min(i+1, abs(ct['N']-ct['S'])+abs(ct['E']-ct['W'])+2*k))   #WHY WOULD YOU DO THIS???!
     return curMax
+
+'''
+note the code below is correct but runtime n^2 so exceeds runtime limit
+the "beauty" is that all the syntax used here are familiar, yet they make a monster
+'''
+def absoluteMonstrosity(s, k):
+    return max(min(i + 1, abs(s[:i+1].count('N') - s[:i+1].count('S')) + abs(s[:i+1].count('E') - s[:i+1].count('W')) + 2 * k) for i in range(len(s)))
+
+'''
+now the code below is just...on a whole new level
+(totally correct tho btw)
+'''
+def luvercraftian(s, k):
+    return max(min(i + 1, abs(n - s_) + abs(e - w) + 2 * k)
+               for i, c in enumerate(s)
+               if not (n := (n if 'n' in locals() else 0) + (c == 'N')) is None
+               if not (s_ := (s_ if 's_' in locals() else 0) + (c == 'S')) is None
+               if not (e := (e if 'e' in locals() else 0) + (c == 'E')) is None
+               if not (w := (w if 'w' in locals() else 0) + (c == 'W')) is None)
+
 
 
 '''
