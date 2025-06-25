@@ -1002,19 +1002,112 @@ def deleteNode(root, target):
 
         return root
 
+
+'''
+question is vague: can we actually go to visited rooms?
+
+braindead...
+'''
+
+def q841(arr):
+    status = [1 for i in range(len(arr))]
+    # 1 -> not visited, 0->visited. Success at sum(status)==0
+    stack = []
+    stack.append(arr[0])
+    status[0] = 0
+    while len(stack)>0:
+        node = stack.pop()
+        for each in node:
+            if status[each]==1: #not visited yet
+                stack.append(arr[each])
+                status[each]=0
+    return sum(status)==0
+
+'''
+ok lets do this recursively
+update: recursive is slightly more fun.
+'''
+
+def recur841(arr, cur):
+    if not cur:
+        return
+    for each in cur:
+        if arr[each]:   #not visited yet
+            cur = arr[each]
+            arr[each] = None
+            recur841(arr, cur)
+        elif arr[each]==[]:
+            arr[each] = None
+
+def final841(arr):
+    if len(arr)<1: return True
+    recur841(arr, arr[0])
+    for each in arr[1:]:
+        if each is not None:
+            return False
+    return True
+
+'''
+ok my first reaction is, i just need one row and linear scan lol
+
+update: symmetry not enough.
+dfs is obvi solution
+lets see if we can do better
+
+lol can I do a union find?
+'''
+def unionFind547(mat):
+    union = [i for i in range(len(mat))]    #initially each elem has themself as connected elem
+    for i in range(len(mat)):
+        for j in range(i+1, len(mat)):
+            if mat[i][j]==1:
+                union[j] = min(i, union[j])    #i definitely smaller than j
+    #now we have mono direction grouping
+
+def testP(msg, k):
+    pin = 0
+    for i in range(1,len(msg)+1):
+        if not i%k:
+            print((pin, i), end = '\t')
+            pin = i
+
+'''
+unionFind and application on testing the
+connectivity of graph when given
+adjacency matrix
+'''
+
+'''
+'''
+def trace(lst, elem1):
+    if lst[elem1] == elem1:
+        return elem1
+    lst[elem1]= trace(lst, lst[elem1])
+    return lst[elem1]
+
+def union(lst, elem1, elem2):
+    root1 = trace(lst, elem1)
+    root2 = trace(lst, elem2)
+    if root1==root2:
+        return
+    if root1<=root2:
+        lst[root2] = root1
+    else:
+        lst[root1] = root2
+
+
+
+
 # test code
 if __name__ == '__main__':
-    start = makeSLL([i for i in range(7)])
-    print("before: ", end='\t')
-    printSLL(start)
-    print()
-    # _, start = q206(start)
-    start = q206iterative(start)
-    print("after: ", end='\t\t')
-    printSLL(start)
-    print("\n---------\n")
-    lst = [[None, None] for i in range(11)]
-    recur(10,10,lst)
-    print("after: ",lst, end='\t\t')
-    print("\n---------\n")
-    print("test: ",fast2130(start))
+    lst = list(range(15))
+    union(lst, 7, 5)
+    union(lst, 6, 7)
+    union(lst, 3, 7)
+    union(lst, 10, 7)
+    union(lst, 5, 9)    #3 is root for 5,6,9,10 (missing 7, which has root 5)
+    for i in range(len(lst)):   #when done with all union operations, need one more thorough tracing
+        trace(lst, i)               # after this, 3 is root for 5,6,7,9,10 which is correct
+
+    print(lst)
+    print([trace(lst, i) for i in [5, 6, 7]])  # Output: [5, 5, 5]
