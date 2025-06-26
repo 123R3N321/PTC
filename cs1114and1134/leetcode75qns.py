@@ -1177,7 +1177,51 @@ but no. Then maybe you accidentally reverse an edge that does not need to be
 
 the hint says do a dfs and pretend the graph is undirected. 
 Huh. honestly it just sounds wrong lmao
+
+nah who cares. Let's do adjacency matrix conversion see where this goes
 '''
+'''
+given a list of connectivity (that is on-directional left-right)
+create bidirectional adjacency matrix of 0 cost forward and 1 cost
+backward. Traverse completely and total cost is answer
+'''
+from collections import defaultdict
+def makeMat(lst):
+    resMat = defaultdict(list)
+    for eachPair in lst:
+        resMat[eachPair[0]].append((eachPair[1], 1))
+        resMat[eachPair[1]].append((eachPair[0], 0))
+    return resMat
+
+def dfsWithCost(graph, visited, start, curCost):
+    visited[start] = True
+    for eachPair in graph[start]:
+        if visited[eachPair[0]]==False:
+            visited[eachPair[0]] = True
+            curCost[0]+=eachPair[1]
+            dfsWithCost(graph, visited, eachPair[0], curCost)
+
+def bfsWithCost(graph, visited, lvl, costArr):
+    if len(lvl)==0:
+        return
+    nextlvl = []
+    for eachNode in lvl:
+        visited[eachNode] = True
+        for eachPair in graph[eachNode]:
+            if visited[eachPair[0]]==False:
+                visited[eachPair[0]] = True
+                nextlvl.append(eachPair[0])
+                costArr[0]+= eachPair[1]
+    bfsWithCost(graph, visited, nextlvl,costArr)
+
+def q1466(n, lst):
+    adjMat = makeMat(lst)
+    visited = [False for _ in range(n)]
+    costArr = [0]   #to fool the memory image of course
+    #dfsWithCost(adjMat, visited, 0, costArr)   ##this is alternative solution.
+    bfsWithCost(adjMat, visited, [0], costArr)
+    return costArr[0]
+
 
 
 # test code
@@ -1193,5 +1237,8 @@ if __name__ == '__main__':
     #
     # print(lst)
     # print([trace(lst, i) for i in [5, 6, 7]])  # Output: [5, 5, 5]
-    mat = [[1]]
-    print(unionFind547(mat))
+    # mat = [[1]]
+    # print(unionFind547(mat))
+    n = 5
+    lst = [[1,0],[1,2],[3,2],[3,4]]
+    print(f"\nfinal answer: {q1466(n, lst)}")
