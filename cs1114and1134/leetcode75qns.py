@@ -1047,29 +1047,6 @@ def final841(arr):
             return False
     return True
 
-'''
-ok my first reaction is, i just need one row and linear scan lol
-
-update: symmetry not enough.
-dfs is obvi solution
-lets see if we can do better
-
-lol can I do a union find?
-'''
-def unionFind547(mat):
-    union = [i for i in range(len(mat))]    #initially each elem has themself as connected elem
-    for i in range(len(mat)):
-        for j in range(i+1, len(mat)):
-            if mat[i][j]==1:
-                union[j] = min(i, union[j])    #i definitely smaller than j
-    #now we have mono direction grouping
-
-def testP(msg, k):
-    pin = 0
-    for i in range(1,len(msg)+1):
-        if not i%k:
-            print((pin, i), end = '\t')
-            pin = i
 
 '''
 unionFind and application on testing the
@@ -1078,36 +1055,143 @@ adjacency matrix
 '''
 
 '''
+* recursively find the correct representative * 
+for each element along a path
+1. only works for monotonic mapping/array
+2. returns that representative value
 '''
 def trace(lst, elem1):
-    if lst[elem1] == elem1:
+    if lst[elem1] == elem1: #end of a path: element key leading to itself
         return elem1
     lst[elem1]= trace(lst, lst[elem1])
-    return lst[elem1]
+    return lst[elem1]   #at the end of function call, return the representative
 
+'''
+* set two elements onto the same path *
+and also set the smaller one in the front
+of the path correctly
+
+note this is not complete mapping/array
+processing. After calling union()
+must call trace() on entire mapping/array
+once and we are done.
+'''
 def union(lst, elem1, elem2):
-    root1 = trace(lst, elem1)
+    root1 = trace(lst, elem1)   #first make sure all elems long the 2 paths have correct representative
     root2 = trace(lst, elem2)
-    if root1==root2:
+    if root1==root2:    #two paths ending at a common key
         return
-    if root1<=root2:
+    if root1<=root2:    #if-else set the correct front order for the two merging paths
         lst[root2] = root1
     else:
         lst[root1] = root2
+    #after this function call, need to trace all
+    #elements in the mapping/array once to merge these two paths
 
+'''
+use union find on leetcode qn 547
+theoretical runtime: size(mat)
+in other words n*n where n is the 
+dimension of the input square matrix
+(because unionfind is, per call, const runtime)
+'''
 
+def unionFind547(mat):
+    repMap = [_ for _ in range(len(mat))]
+    for i in range(len(mat)):   #go row by row
+        rowProcessing(mat, repMap, i)   #each row we union them
+
+        for j in range(len(mat[i])):    #a tracing scan on each row
+            trace(repMap, repMap[j])
+    #now we just need to see what is present in repMap
+    ct = len(repMap)
+    for i in range(len(repMap)):
+        if repMap[i]!=i:    #element has a representative somewhere else
+            ct-=1
+    return ct
+
+'''
+deals with a single row in the matrix
+note the row ind is also current ind pos
+in repMap, which is nice
+'''
+def rowProcessing(mat, repMap, rowInd):
+    for i in range(len(mat[rowInd])):
+        if mat[rowInd][i] ==1:   #we see a connection here!
+            union(repMap, repMap[i], rowInd)
+    # note that we still need one more scan on
+    # the entire row and trace before processing next row
+
+'''
+update:
+yep totally works. Nice.
+I think this is a really elegant solution
+although it only beats 9.96% submissions
+
+now, this section of the leetcode 75 is actually
+on dfs in the vanilla sense.
+Even though the trace() function is essentially
+dfs, we are kinda overkilling it.
+
+Let's see if we can do a minimal version
+that is just dfs
+'''
+def vanilla547(mat):
+    visited = [False for _ in range(len(mat))]
+    ct = 0
+
+    for i in range(len(mat)):
+        if visited[i]==False:
+            ct+=1
+            visited[i] = True
+            dfs(mat, visited, i)
+    return ct
+
+def dfs(mat, visited, i):
+    for j in range(len(mat)):
+        if mat[i][j] == 1:  #connection
+            if visited[j] == False: #check if it is already visited
+                visited[j] = True
+                dfs(mat, visited, j)
+'''
+update after submission:
+yeah super fast lol.
+but hey we do not retain the representative info
+with union find you retain the info of the 
+representative of each row
+'''
+
+'''
+ok Im actually not sure what is the approach
+here. Since all nodes guratanteed to work
+in the end, we must have:
+    -> nodes connected to 0, either direction
+    ->all the rest connected, either direction
+in other words, if this is undirected graph
+everything is already connected
+why do I feel that this is bfs lol
+use bfs to eliminate redundant edges 
+(suppose 0 -- 1 -- 2 -- 3 -- 0, with bfs
+we only have 0--1 and 0--2 and either 0--1--2 or 0--3--2)
+but no. Then maybe you accidentally reverse an edge that does not need to be
+
+the hint says do a dfs and pretend the graph is undirected. 
+Huh. honestly it just sounds wrong lmao
+'''
 
 
 # test code
 if __name__ == '__main__':
-    lst = list(range(15))
-    union(lst, 7, 5)
-    union(lst, 6, 7)
-    union(lst, 3, 7)
-    union(lst, 10, 7)
-    union(lst, 5, 9)    #3 is root for 5,6,9,10 (missing 7, which has root 5)
-    for i in range(len(lst)):   #when done with all union operations, need one more thorough tracing
-        trace(lst, i)               # after this, 3 is root for 5,6,7,9,10 which is correct
-
-    print(lst)
-    print([trace(lst, i) for i in [5, 6, 7]])  # Output: [5, 5, 5]
+    # lst = list(range(15))
+    # union(lst, 7, 5)
+    # union(lst, 6, 7)
+    # union(lst, 3, 7)
+    # union(lst, 10, 7)
+    # union(lst, 5, 9)    #3 is root for 5,6,9,10 (missing 7, which has root 5)
+    # for i in range(len(lst)):   #when done with all union operations, need one more thorough tracing
+    #     trace(lst, i)               # after this, 3 is root for 5,6,7,9,10 which is correct
+    #
+    # print(lst)
+    # print([trace(lst, i) for i in [5, 6, 7]])  # Output: [5, 5, 5]
+    mat = [[1]]
+    print(unionFind547(mat))
