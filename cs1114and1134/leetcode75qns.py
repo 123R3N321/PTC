@@ -1223,6 +1223,182 @@ def q1466(n, lst):
     return costArr[0]
 
 
+'''
+q 399 is like a new genre that I have not encountered before
+after checking hint:
+create adjacency mat, where forward gives multiplicant num
+and backward is divisive num, so when we do down a path
+we multiply them together
+'''
+def makeDivMat(adjLst, valLst):
+    adjMat = defaultdict(list)  #better than literally matrix when graph is sparsely connected and big.
+    for i in range(len(adjLst)):    #promised adjLst and valLst same len
+        f = adjLst[i][0]    #node parent
+        t = adjLst[i][1]    #node child
+        adjMat[f].append((t, valLst[i]))    #append a tup containing destination and cost
+        adjMat[t].append((f, 1/valLst[i]))  #promised valLst does not contain 0
+    return adjMat
+
+'''
+search for the correct path going from f to t in adjMat and return the total cost
+if path cannot be found we return float -1
+
+dfs bfs no diff here. DFS is more intuitive for path cost
+
+also note we do NOT do unmarking in visited here
+because the problem is math in essence and you
+CANNOT go from a variable to another variable 
+AND end up with diff calculation result
+(in other words, even if other paths exist, they all 
+produce the same final result)
+
+e.g. a = 2b, b = 2c, d = 3c
+then: can be represented by a only in one way,
+    or it can be represented by a, or b, or c, but
+    they all mean the same value
+'''
+def seek(adjMat,visited, f, t, curCost):
+    if f == t:  #we reached destination! no need further exploration
+        return curCost
+
+    visited[f] = True
+    if not adjMat[f]:   #dead end!
+        return float(-1)
+
+    for dst, val in adjMat[f]:
+        if visited[dst] == False:   #only explore if not visited yet
+            #no need to mark visited as the top line of next recursive call handles it
+            res = seek(adjMat, visited, dst, t, curCost * val)
+            if res != float(-1):    #only return if target is found
+                return res
+    return float(-1)    #if map exhausted and no result, fail here
+
+'''
+initialize/refresh visited array after a query
+'''
+def refreshVisited(adjLst, visited):
+    for f, t in adjLst: #super simple: mark EVERYTHING as not visited yet lol
+        visited[f] = False
+        visited[t] = False
+
+def doQueries(adjLst, valLst, queries):
+    adjMat = makeDivMat(adjLst, valLst)
+    res = []
+    visited = {}
+    refreshVisited(adjLst, visited)
+    for eachQuery in queries:   #each query is a list of 2 elems, from and to
+        f = eachQuery[0]
+        t = eachQuery[1]
+        # first check if either one is not registered, we use -1 float as dummy val
+        if not adjMat[f] or not adjMat[t]:
+            res.append(float(-1))
+            #implied continue onto next iteration
+        else:   #implied both from and to are connected
+            res.append(seek(adjMat, visited, f, t, float(1)))
+            refreshVisited(adjLst, visited) #when we do next query we start clean
+    return res
+
+'''
+q 1926 makes me think... isn't this just djkstra?
+'''
+
+'''
+probing helper function,
+given a player location (coord), check left/right/up/down
+and exclude the direction the player comes from (coord)
+
+need vertical and horizontal boundary info to make sure
+we don't get out of the game map. (bound is dimension, which means ind exclusive)
+
+return a list of coords to go to
+'''
+def probe(gameMap, loc):
+    res = []
+    directions = [(-1,0), (1,0), (0,-1), (0,1)]  # up, down, left, right
+    for dy, dx in directions:
+        ny, nx = loc[0] + dy, loc[1] + dx
+        if 0 <= ny < len(gameMap) and 0 <= nx < len(gameMap[0]):
+            if gameMap[ny][nx] == '.':
+                res.append([ny, nx])
+    return res
+
+def checkWin(loc, width, height):
+    return loc[0] == 0 or loc[0] == height - 1 or loc[1] == 0 or loc[1] == width - 1
+
+class Node1926:
+    def __init__(self, y, x, cost):
+        self.loc = [y, x]
+        self.cost = cost
+    def __gt__(self, other):
+        return self.cost > other.cost
+
+def q1926(gameMap, start):
+    height, width = len(gameMap), len(gameMap[0])
+    visited = [[False] * width for _ in range(height)]
+    heap = [Node1926(start[0], start[1], 0)]
+
+    while heap:
+        node = heapPop(heap)
+        y, x = node.loc
+
+        if visited[y][x]:
+            continue
+        visited[y][x] = True
+
+        if node.loc != start and checkWin(node.loc, width, height):
+            return node.cost
+
+        for ny, nx in probe(gameMap, [y, x]):
+            if not visited[ny][nx]:
+                heapPush(heap, Node1926(ny, nx, node.cost + 1))
+
+    return -1
+
+
+'''
+and lets do heap from scratch cuz why not lol
+'''
+
+def makeHeap(lst):
+    for i in range(len(lst)//2+1,-1,-1):
+        heapify(lst, i)
+
+def heapPush(heap,elem):
+    heap.append(elem)
+    i = len(heap)-1 #which is exactly where elem is
+    while i > 0:
+        parentIndex = (i-1) // 2
+        if heap[parentIndex] > heap[i]:
+            heap[i], heap[parentIndex] = heap[parentIndex], heap[i]
+            i = parentIndex
+        else:   #no need further swap-up, terminate func
+            break
+
+
+
+def heapify(heap, i):
+    parentInd = i
+    leftInd = 2*i + 1
+    rightInd = 2*i + 2
+    if leftInd < len(heap) and heap[parentInd] > heap[leftInd]:
+        parentInd = leftInd
+    if rightInd < len(heap) and heap[parentInd] > heap[rightInd]:
+        parentInd = rightInd
+    if parentInd != i:  #a change chappened
+        heap[i], heap[parentInd] = heap[parentInd], heap[i]
+        heapify(heap, parentInd)
+
+def heapPop(heap):
+    heap[-1], heap[0] = heap[0], heap[-1]
+    res = heap.pop()
+    heapify(heap, 0)
+    return res
+
+'''
+update:
+the solution I have is pretty slow lol
+go read the standard solutions!
+'''
 
 # test code
 if __name__ == '__main__':
@@ -1240,5 +1416,8 @@ if __name__ == '__main__':
     # mat = [[1]]
     # print(unionFind547(mat))
     n = 5
-    lst = [[1,0],[1,2],[3,2],[3,4]]
-    print(f"\nfinal answer: {q1466(n, lst)}")
+    # lst = [[1,0],[1,2],[3,2],[3,4]]
+    # print(f"\nfinal answer: {q1466(n, lst)}")
+    maze = [["+","+",".","+"],[".",".",".","+"],["+","+","+","."]]
+    start = [1,2]
+    print(q1926(maze, start))
