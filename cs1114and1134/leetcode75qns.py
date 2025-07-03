@@ -1400,6 +1400,23 @@ the solution I have is pretty slow lol
 go read the standard solutions!
 '''
 
+'''
+sort, then sliding window
+
+super simple but remember sliding the forward first 
+is better here
+'''
+def daily(lst):
+    lst.sort()
+    ct = 0
+    start = 0
+    for i in range(len(lst)):
+        if lst[i] - lst[start] ==1:
+            ct = max(ct, i - start+1)
+        while lst[i] - lst[start] >1:
+            start += 1
+    return ct
+
 # test code
 if __name__ == '__main__':
     # lst = list(range(15))
@@ -1418,6 +1435,9 @@ if __name__ == '__main__':
     n = 5
     # lst = [[1,0],[1,2],[3,2],[3,4]]
     # print(f"\nfinal answer: {q1466(n, lst)}")
-    maze = [["+","+",".","+"],[".",".",".","+"],["+","+","+","."]]
-    start = [1,2]
-    print(q1926(maze, start))
+    # maze = [["+","+",".","+"],[".",".",".","+"],["+","+","+","."]]
+    # start = [1,2]
+    # print(q1926(maze, start))
+    lst = [1,3,2,2,5,2,3,7]
+
+    print(daily(lst))
