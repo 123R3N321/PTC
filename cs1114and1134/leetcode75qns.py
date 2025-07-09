@@ -1452,7 +1452,95 @@ observations:
 
 '''
 def q994(mat):
-    ...
+    remaining = 0
+    start = []
+    for i in range(len(mat)):
+        for j in range(len(mat[i])):
+            if mat[i][j] == 1:
+                remaining += 1  #count how mny good oranges
+            elif mat[i][j] == 2:
+                start.append((i,j)) #locate first starting point
+    if remaining == 0: return 0
+    ct = 0
+    while len(start)>0: #when we see no further increase, stop code
+        start, diminish = squarePropagation(mat, start)
+        remaining -= diminish
+        ct += 1
+        if remaining == 0:
+            return ct
+    return -1
+
+
+'''
+given a list of starting points, propagate values 2,return a list of index position pairs for next frontier
+'''
+def squarePropagation(arr, lst):
+    nextLst = []
+    diminish = 0
+    m = len(arr)
+    n = len(arr[0])
+    for x, y in lst:
+        if x-1>=0 and arr[x-1][y]==1:   #down
+            arr[x-1][y] = 2
+            nextLst.append((x-1, y))
+            diminish+=1
+        if x+1<m and arr[x+1][y]==1:    #up
+            arr[x+1][y] = 2
+            nextLst.append((x+1, y))
+            diminish += 1
+        if y-1>=0 and arr[x][y-1]==1:   #left
+            arr[x][y-1] = 2
+            nextLst.append((x, y-1))
+            diminish += 1
+        if y+1<n and arr[x][y+1]==1:    #right
+            arr[x][y+1] = 2
+            nextLst.append((x, y+1))
+            diminish += 1
+    return nextLst,diminish  #the list containing the next frontier, and keep track decrease of the oranges
+
+'''
+chatgpt produces a more...academically BFS code based on my implementation
+note the use of double while loop to separate queue stages. I think it is good syntax
+'''
+from collections import deque
+
+def q994ChatGPT(grid):
+    rows, cols = len(grid), len(grid[0])
+    fresh = 0
+    queue = deque()
+
+    # Initialize the queue with all rotten oranges and count fresh ones
+    for r in range(rows):
+        for c in range(cols):
+            if grid[r][c] == 2:
+                queue.append((r, c))
+            elif grid[r][c] == 1:
+                fresh += 1
+
+    if fresh == 0:
+        return 0
+
+    minutes = 0
+    directions = [(-1,0), (1,0), (0,-1), (0,1)]  # up, down, left, right
+
+    while queue:
+        next_queue = deque()
+        while queue:    #double while loop allows next_que -> queue swap that separates levels.
+            r, c = queue.popleft()
+            for dr, dc in directions:
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] == 1:
+                    grid[nr][nc] = 2
+                    fresh -= 1
+                    next_queue.append((nr, nc))
+        if next_queue:
+            minutes += 1
+            queue = next_queue
+        else:
+            break
+
+    return minutes if fresh == 0 else -1
+
 
 # test code
 if __name__ == '__main__':
