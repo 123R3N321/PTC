@@ -1417,6 +1417,43 @@ def daily(lst):
             start += 1
     return ct
 
+'''
+there is prolly some
+smart const runtime mathematical solution? especially since m, n values within 10
+
+easy case: 
+    no rotting, return -1, runtime linear
+
+kinda funky case: 
+    rotting, but "contained", AND
+    there is clean oranges elsewhere
+
+and majority case:
+    blunt solution: bfs simulation (linear runtime)
+    mathematical solution:
+        could I do union find? And keep track how many steps are needed? That will optimal linear
+
+observations:
+    
+    we could apply manhattan distance: diagonal cell takes two steps to reach
+    
+    a problem is that we potentially have multi-root: could start a connected graph from
+    multiple rotten oranges
+    
+    blunt-force simulation? 
+        -> optimzation: keep count of total good oranges so we do not have to scan 
+            entire mat after each iteration
+        
+        -> termination: either count of remaining goes to 0, OR:
+            there is no new state change (rotten orange increase) for an iteration
+        
+        the above two steps take care of the funky case. Good
+                        
+
+'''
+def q994(mat):
+    ...
+
 # test code
 if __name__ == '__main__':
     # lst = list(range(15))
