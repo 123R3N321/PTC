@@ -1541,6 +1541,62 @@ def q994ChatGPT(grid):
 
     return minutes if fresh == 0 else -1
 
+'''
+q215 seems a heap problem, I can do it in lineaer time 
+(bruh and when k is large this is basically nlogn, not to mention nlogn isn't much worse than n anyways)
+'''
+
+def revheapPush(heap, elem):
+    heap.append(elem)
+    start = len(heap)-1
+    while start>0:
+        if heap[(start-1)//2] < heap[start]:
+            heap[(start-1)//2], heap[start] = heap[start], heap[(start-1)//2]
+            start = (start-1)//2
+        else:
+            break
+
+def revheapPop(heap):
+    if len(heap)==0: raise IndexError
+    if len(heap)==1: return heap.pop()
+    heap[0], heap[-1] = heap[-1], heap[0]
+    res = heap.pop()
+    revOrganize(heap, 0)
+    return res
+
+def revOrganize(heap, start):
+    while start<len(heap):
+        pin = start
+        left = 2 * start + 1
+        right = 2 * start + 2
+        if left < len(heap) and heap[pin] < heap[left]:
+            pin = left
+        if right < len(heap) and heap[pin] < heap[right]:
+            pin = right
+        if pin != start:
+            heap[pin], heap[start] = heap[start], heap[pin]
+            start = pin
+        else:   #instead of recursive call, simple while loop
+            break
+def q215(arr,k):
+    heap = []
+    for each in arr:
+        revheapPush(heap, each)
+    res = None
+    for i in range(k):
+        res = revheapPop(heap)
+    return res
+
+'''
+why do I feel that for q2542, sliding window 
+brute force all possibilities is best solution?
+we can achieve linear runtime
+
+update: after checking hint, prolly we could:
+synchronize the ind positions of arr A and B
+at all times, and sort arr B
+then, brute-force solution? I need to think...
+'''
 
 # test code
 if __name__ == '__main__':
@@ -1564,5 +1620,11 @@ if __name__ == '__main__':
     # start = [1,2]
     # print(q1926(maze, start))
     lst = [1,3,2,2,5,2,3,7]
+    heap = []
+    for each in lst:
+        revheapPush(heap, each)
+    print(heap)
+    n = len(heap)
+    for i in range(n):
+        print(revheapPop(heap), end = ' ')
 
-    print(daily(lst))
