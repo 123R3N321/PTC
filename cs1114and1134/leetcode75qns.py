@@ -1588,43 +1588,208 @@ def q215(arr,k):
     return res
 
 '''
-why do I feel that for q2542, sliding window 
-brute force all possibilities is best solution?
-we can achieve linear runtime
+I figured out.
 
-update: after checking hint, prolly we could:
-synchronize the ind positions of arr A and B
-at all times, and sort arr B
-then, brute-force solution? I need to think...
+Create a tagged array that contains 
+pairs of elem-elem ind pos for array B,
+sort it based on elem values
+
+start scanning this tagged array from biggest to smallest,
+and add the ind pos corres elems from array A into a heap,
+keep track of current sum from A.
+when we reach the k-th biggest,
+we could compute the first candidate answer: 
+k-th elem in tagged array multiply by the cumulative sum from A so far
+
+and the important step is from here onwards:
+when you keep going down from k-th biggest in tagged arr,
+each step automatically means you are decreasing that multiplicant 
+and we do sliding window comparison for the additional element coming
+from A: check it against top of heap, if smaller or equal, do nothing
+if bigger, the cumulative sume -= that top elem += current elem, heap
+pop the old top elem and heappush our newly added elem
+
+at any moment in time the heap has only k elems, as k -> n,
+algo has nlogn runtime (already so when we sorted tagged array from B)
 '''
+
+def tagArrGen(arr):
+    res = []
+    for i in range(len(arr)):
+        res.append((arr[i], i)) #elem val -- ind pos
+    return sorted(res, reverse = True)
+
+def heapPush(heap, elem):
+    heap.append(elem)
+    if len(heap)==1: return
+    start = len(heap)-1
+    while start>0:
+        prev = (start-1)//2
+        if heap[prev] <= heap[start]:
+            break
+        heap[prev], heap[start] = heap[start], heap[prev]
+        start = prev
+
+def heapPop(heap):
+    if len(heap)==0: raise Exception("Empty heap!")
+    if len(heap)==1: return heap.pop()
+    heap[0], heap[-1] = heap[-1], heap[0]
+    res = heap.pop()
+    start = 0
+    while start<len(heap):
+        pin = start
+        left = 2 * start + 1
+        right = 2 * start + 2
+        if left < len(heap) and heap[left] < heap[pin]:
+            pin = left
+        if right < len(heap) and heap[right] < heap[pin]:
+            pin = right
+        if pin==start: break
+        heap[pin], heap[start] = heap[start], heap[pin]
+        start = pin
+    return res
+
+def q2542(A,B,k):
+    taggArr = tagArrGen(B)  #rev sorted. Contains elem-ind pairs
+    heap = []
+    curSum = 0
+    for i in range(k):
+        curSum += A[taggArr[i][1]]  #keep track the cumulative sum of A elems in heap
+        heapPush(heap, A[taggArr[i][1]])    #put A elem in heap
+    curBest = taggArr[k-1][0] * curSum
+    for j in range(k, len(taggArr)):    #scan from kth onwards till depleted
+        if A[taggArr[j][1]]>heap[0]:    #compare with smallest elem in heap, if so, modify heap
+            curSum -= heap[0]
+            heapPop(heap)
+            heapPush(heap, A[taggArr[j][1]])
+            curSum += A[taggArr[j][1]]
+            # print(f"local operation: res: {taggArr[j][0] * curSum} from min: {taggArr[j][0]} times cur sum: {curSum}")
+            curBest = max(curBest, taggArr[j][0] * curSum)
+    return curBest
+'''
+update after checking standard solution: yep same approach
+maybe re-write one more time with fast, python syntax using libs?
+'''
+import heapq
+def minimal2542(B, A, k):
+    #again the lambda expression is not necessary as default comparable is element at ind 0
+    tagArr = sorted(list(zip(A,B)), reverse = True, key = lambda x:x[0])
+    heap = []
+    curSum = 0
+    res = 0
+    for eachPair in tagArr:
+        heapq.heappush(heap, eachPair[1])
+        curSum += eachPair[1]
+        if len(heap)>k:
+            curSum -= heapq.heappop(heap)
+        if len(heap)==k:
+            res = max(res, curSum * eachPair[0])
+    return res
+
+'''
+q2462 is truly very poorly worded
+Reading the discussion section helped a lot
+It is a good lesson that sometimes don't
+kill yourself over arcane leetcode descriptions!
+
+first thoughts:
+    -> two cases: 
+        ->  easy case: the "candidate" selection combined with
+            k total extraction provides full coverage of the 
+            input arr. In other words all elements in arr
+            will be checked, and the problem is simply
+            looking for the sum of k smallest elements
+        
+        ->  funky case: we do not penetrate the entire 
+            input arr. Some of the elements remain opaque
+            to us. In that case simply heapify the
+            elements visible to us and then select the best
+            k elements
+            
+            ->  this leaves only one question: determining 
+                exactly how much we can penetrate, and
+                since penetration level only goes up
+                one at a time, we do not have throttle 
+                problem. Once we can determin the amount 
+                reached, simply heapify all reached elements
+                and we can get result
+                ->  my answer: 2 * candidates + k-1 gives coverage
+                
+                ->  but in the case we DO NOT have full-penetration,
+                    how to determine which elements will be accounted for?
+                    ->  we cannot. Depending on where we get each previous 
+                        selection, the next candidate and therefore 
+                        selection can come from either end side of the
+                        un-penetrated section of the input array. 
+'''
+def q2462(arr, k, c):
+    res = 0
+    if len(arr)<= 2*c+k-1:  #full coverage
+        fullHeap = []
+        for each in arr:
+            heapq.heappush(fullHeap, each)
+        for i in range(k):
+            res += heapq.heappop(fullHeap)
+        return res
+    else:   #we cannot see everything in the arr
+            #guaranteed no overlapping cursor -> no overreaching problem
+        left = c-1
+        right = -c  #use python's support of neg ind
+        leftHeap = []
+        rightHeap = []
+        for i in range(left+1):
+            heapq.heappush(leftHeap, arr[i])
+        for j in range(-1, right-1,-1):  #go backward doesn't hurt
+            heapq.heappush(rightHeap, arr[j])
+        while k>0:
+            k-=1
+            if leftHeap and rightHeap:
+                if leftHeap[0] <= rightHeap[0]:
+                    res+= heapq.heappop(leftHeap)
+                    left+=1 #guaranteed won't overreach
+                    heapq.heappush(leftHeap, arr[left])
+                else:   #take from right heap
+                    res+= heapq.heappop(rightHeap)
+                    right-=1
+                    heapq.heappush(rightHeap, arr[right])
+            else:
+                if leftHeap:
+                    res+= heapq.heappop(leftHeap)
+                    left+=1
+                    heapq.heappush(leftHeap, arr[left])
+                else:   #implied only right heap is non-empty
+                    res+= heapq.heappop(rightHeap)
+                    right-=1
+                    heapq.heappush(rightHeap, arr[right])
+        return res
+'''
+trivial imporvement of code based on standard solution:
+
+            st = heap_st[0] if heap_st else 1000000
+            en = heap_en[0] if heap_en else 1000000
+
+            if st <= en:
+                ans += heappop(heap_st)
+            else:
+                ans += heappop(heap_en)
+
+gist: use dummy value instead of actually checking one heap depletion
+situation
+'''
+'''
+another update: absolutely trolling behavior:
+
+__import__("atexit").register(lambda: open("display_runtime.txt", "w").write("0"))
+
+this makes your solution beat 100%. Does this count as injection attack?
+'''
+
 
 # test code
 if __name__ == '__main__':
-    # lst = list(range(15))
-    # union(lst, 7, 5)
-    # union(lst, 6, 7)
-    # union(lst, 3, 7)
-    # union(lst, 10, 7)
-    # union(lst, 5, 9)    #3 is root for 5,6,9,10 (missing 7, which has root 5)
-    # for i in range(len(lst)):   #when done with all union operations, need one more thorough tracing
-    #     trace(lst, i)               # after this, 3 is root for 5,6,7,9,10 which is correct
-    #
-    # print(lst)
-    # print([trace(lst, i) for i in [5, 6, 7]])  # Output: [5, 5, 5]
-    # mat = [[1]]
-    # print(unionFind547(mat))
-    n = 5
-    # lst = [[1,0],[1,2],[3,2],[3,4]]
-    # print(f"\nfinal answer: {q1466(n, lst)}")
-    # maze = [["+","+",".","+"],[".",".",".","+"],["+","+","+","."]]
-    # start = [1,2]
-    # print(q1926(maze, start))
-    lst = [1,3,2,2,5,2,3,7]
-    heap = []
-    for each in lst:
-        revheapPush(heap, each)
-    print(heap)
-    n = len(heap)
-    for i in range(n):
-        print(revheapPop(heap), end = ' ')
-
+    arr = [31,25,72,79,74,65,84,91,18,59,27,9,81,33,17,58]
+    k = 11
+    c = 2
+    print(q2462(arr, k, c))
+    # for i in range(0,-3,-1):
+    #     print(i, end = " ")
