@@ -1783,13 +1783,108 @@ __import__("atexit").register(lambda: open("display_runtime.txt", "w").write("0"
 
 this makes your solution beat 100%. Does this count as injection attack?
 '''
+def recur(node, mul):
+    if not node:
+        return 0, -1
+    if 1==node.val:
+        return 2**recur(node.next)[1]+recur(node.next)[0], recur(node.next)[1]+1
+    else:
+        return recur(node.next)[0], recur(node.next)[1]+1
 
+# def dailyOR(arr):
+#     ...
+'''
+q 2300
+forward sort spells
+backward sort potions
+
+also binary search?
+'''
+
+def q2300(spells, potions, threshold):
+    # spells = sorted(spells) #forward scan
+    potions = sorted(potions, reverse=True) #backward allows greedy approach
+
+    res = [0 for i in range(len(spells))]   #instead of repeated append, do in-place tally
+    for i in range(len(spells)):
+        seed = spells[i]
+        res[i] = binaryTally(seed,potions, threshold)
+    return res
+'''
+helper func that will perform binary search and return tally
+'''
+def binaryTally(seed, potions, threshold):  #note potions are rev sorted here
+    l = 0
+    r = len(potions)-1
+    res = 0
+    while l<=r:
+        mid = (l+r)//2
+        local = potions[mid] * seed
+        if local<threshold: #when we have a local result below threshold
+            r = mid-1
+        else:
+            res+= mid-l+1
+            l = mid+1
+    return res
+
+'''
+same approach but way, way, way cleaner code and arguably smart
+
+class Solution:
+    def successfulPairs(self, spells: List[int], potions: List[int], success: int) -> List[int]:
+        potions.sort()
+        m = len(potions)
+        res = []
+
+        for spell in spells:
+            required = ceil(success / spell)
+            idx = bisect_left(potions, required)
+            res.append(m - idx)
+        return res
+'''
+
+'''
+single-side scan approach, which is not very convoluted:
+check the middle:
+    -> if it is bigger than left and right, good
+    else:   (at least left bigger or equal or right bigger or equal)
+        -> if right is bigger or equal, go right look for middle repeat
+        else:   (has to be left bigger or equal)
+            ->  go left
+'''
+def q162(arr):
+    if len(arr)<=1:
+        return 0
+    mid = (len(arr)-1)//2   #mid ind
+    if arr[mid] > arr[mid+1] and arr[mid] > arr[mid-1]: #exactly good
+        return mid
+    l = 0
+    r = len(arr)-1
+    while l<=r:
+        mid = (l+r)//2
+        if arr[mid] > arr[mid + 1] and arr[mid] > arr[mid - 1]:  # exactly good
+            return mid
+        else:   #either left>= mid, or right >=mid
+            if arr[mid]<=arr[mid+1]:
+                l = mid + 1
+            else:   #go left
+                r = mid - 1
+    return l
 
 # test code
 if __name__ == '__main__':
-    arr = [31,25,72,79,74,65,84,91,18,59,27,9,81,33,17,58]
-    k = 11
-    c = 2
-    print(q2462(arr, k, c))
-    # for i in range(0,-3,-1):
-    #     print(i, end = " ")
+    seed = 2
+    potions = [_ for _ in range(19,0,-1)]
+    threshold = 11
+    # print(binaryTally(seed, potions, threshold))
+    spells = [15,8,19]
+    potions = [38,36,23]
+    success = 328
+    print(q2300(spells, potions, success))
+    # arr = [31,25,72,79,74,65,84,91,18,59,27,9,81,33,17,58]
+    # k = 11
+    # c = 2
+    # # print(q2462(arr, k, c))
+    # # for i in range(0,-3,-1):
+    # #     print(i, end = " ")
+    # print(3|5)

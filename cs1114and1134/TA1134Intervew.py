@@ -1,0 +1,165 @@
+'''
+this is the workspace for
+1134 interview, fall 2025
+'''
+
+'''
+Q1: ADT duplicate stack: tracks consecutive elements
+
+approach: instead of ingle value elements, store a list of len 2
+    -> choice of list instead of tuple: mutable (trivial choice)
+'''
+
+class DupStack:
+    def __init__(self):
+        self.stack = [] #the stack itself is a list, note we push/pop from ind -1
+        self.length = 0 #allows const time size check
+
+    def is_empty(self):
+        return self.length == 0
+
+    def __len__(self):
+        return self.length
+
+    def push(self, value):
+        if self.is_empty():
+            self.stack.append([value, 1])
+        else:   #in the case stack not empty
+            if value == self.stack[-1][0]:  #in the case new val is same as top val
+                self.stack[-1][1] += 1  #tally
+            else:   #new val is distinct
+                self.stack.append([value, 1])   #same as if case, readable style
+        self.length += 1
+
+    def top(self):
+        if self.is_empty():
+            raise Exception('stack is empty')
+        else:
+            return self.stack[-1][0]
+
+    def top_dups_count(self):
+        if self.is_empty():
+            raise Exception("the dup stack is empty! No dup count!")
+        else:
+            return self.stack[-1][1]    #simply check the count of top elem
+
+    def pop(self):
+        if self.is_empty():
+            raise Exception("the dup stack is empty! Nothing to pop!")
+        else:
+            self.length -= 1
+            val = self.stack[-1][0] #the value to be returned
+            if self.stack[-1][1]<=1:    #top elem has count of 1
+                self.stack.pop()    #just pop it
+            else:   #count more than 1
+                self.stack[-1][1]-=1    #reduce dup count
+            return val
+
+    def pop_dups(self):
+        if self.is_empty():
+            raise Exception("the dup stack is empty! Nothing to pop!")
+        else:
+            self.length -= self.stack[-1][1] #all dup count at top level subtracted
+            val = self.stack[-1][0] #still keep track of the top val
+            self.stack.pop() #remove entire thing
+            return val
+
+
+'''
+recursive bst construction from preorder traversal
+simple DP approach, dfs manner
+
+note that assuming no duplicate eliminates ambiguous case (nice!)
+
+assume the tree is just the root note (instead of wrapped in a ADT), leetcode style
+'''
+
+class Node:
+    def __init__(self, val, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+'''
+essentially dfs approach
+'''
+def recur(lst, ind, bound):
+    if ind >= len(lst) or lst[ind] > bound:
+        return ind, None
+    root_val = lst[ind]
+    # node = TreeNode(root_val)
+    root_ind, left = recur(lst, ind + 1, root_val)
+    root_ind, right = recur(lst, root_ind, bound)
+    return root_ind, Node(root_val, left, right)
+
+def bstFromPreorder(preorder):
+    _, root = recur(preorder, 0, float('inf'))
+    return root
+
+
+
+
+def recurP(lst, end, bound):
+    if end < 0 or lst[end] < bound:
+        return end, None
+    root_val = lst[end]
+    end, right = recurP(lst, end - 1, root_val)
+    end, left = recurP(lst, end, bound)
+    return end, Node(root_val, left, right)
+
+def bstFromPostorder(postorder):
+    _, root = recurP(postorder, len(postorder) - 1, float('-inf'))
+    return root
+
+
+
+def print_tree(node, indent=0):
+    if node is not None:
+        print_tree(node.right, indent + 4)
+        print(" " * indent + f"{node.val}")
+        print_tree(node.left, indent + 4)
+
+# test code
+if __name__ == "__main__":
+    dupS = DupStack()
+    dupS.push(4)
+    dupS.push(5)
+    dupS.push(5)
+    dupS.push(5)
+    dupS.push(4)
+    dupS.push(4)
+    print("answer:  6\t4\t2\t4\t4\t5\t3\t5\t4")
+    # print(len(dupS))
+    # print(dupS.top())
+    # print(dupS.top_dups_count())
+    # print(dupS.pop())
+    # print(dupS.pop())
+    # print(dupS.top())
+    # print(dupS.top_dups_count())
+    # print(dupS.pop_dups())
+    # print(dupS.top())
+    ans = [6,4,2,4,4,5,3,5,4]
+    check = []
+    check.append(len(dupS))
+    check.append(dupS.top())
+    check.append(dupS.top_dups_count())
+    check.append(dupS.pop())
+    check.append(dupS.pop())
+    check.append(dupS.top())
+    check.append(dupS.top_dups_count())
+    check.append(dupS.pop_dups())
+    check.append(dupS.top())
+    if check == ans:
+        print("Q1: all tests passed")
+    else:
+        print("Q1: mistake.")
+
+    print("=========End of Q1 Start of Q2===================")
+
+    preorder = [9,7,3,1,5,13,11,15]
+    postorder = [1,5,3,7,11,15,13,9]
+    root = bstFromPreorder(preorder)
+    rootP = bstFromPostorder(postorder)
+    print_tree(root)
+    print("\n------------------------------------------------\n")
+    print_tree(rootP)
