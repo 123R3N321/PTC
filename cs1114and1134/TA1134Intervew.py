@@ -6,7 +6,7 @@ this is the workspace for
 '''
 Q1: ADT duplicate stack: tracks consecutive elements
 
-approach: instead of ingle value elements, store a list of len 2
+approach: instead of single value elements, store a list of len 2
     -> choice of list instead of tuple: mutable (trivial choice)
 '''
 
@@ -118,6 +118,40 @@ def print_tree(node, indent=0):
         print_tree(node.right, indent + 4)
         print(" " * indent + f"{node.val}")
         print_tree(node.left, indent + 4)
+
+
+
+
+
+
+'''
+some after thought on Q2, chat-gpt-ed
+I think this approach is very elegant
+'''
+def bst_from_preorder(pre):
+    i = 0  # shared index into pre
+
+    def build(lo, hi):
+        nonlocal i  #this syntax means it is not global, but in an outer scope
+        # if next value is out of allowed range, it doesn't belong here
+        if i == len(pre) or not (lo < pre[i] < hi): #no repeating element, strict comparison is ok
+            return None
+
+        root_val = pre[i]
+        i += 1
+        node = Node(root_val)
+        # left subtree: values < root_val
+        node.left = build(lo, root_val)
+        # right subtree: values > root_val
+        node.right = build(root_val, hi)    #every element either falls to left or right, universal set achieved
+        return node
+
+    return build(float("-inf"), float("inf"))
+
+
+
+
+
 
 '''
 Q3: re-write a remove_all(lst, val) func
