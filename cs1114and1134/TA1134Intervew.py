@@ -85,12 +85,12 @@ essentially dfs approach
 '''
 def recur(lst, ind, bound):
     if ind >= len(lst) or lst[ind] > bound:
-        return ind, None
+        return ind, None    # return pair of curr ind pos and the cur node
     root_val = lst[ind]
     # node = TreeNode(root_val)
-    root_ind, left = recur(lst, ind + 1, root_val)
-    root_ind, right = recur(lst, root_ind, bound)
-    return root_ind, Node(root_val, left, right)
+    root_ind, left = recur(lst, ind + 1, root_val)  #left traversal until either end of list or reach node of value above bound
+    root_ind, right = recur(lst, root_ind, bound)   #root_ind updated by left recurse, bound not.
+    return root_ind, Node(root_val, left, right)    #we only interested in the second in the pair
 
 def bstFromPreorder(preorder):
     _, root = recur(preorder, 0, float('inf'))
@@ -98,7 +98,7 @@ def bstFromPreorder(preorder):
 
 
 
-
+# do a post order reconstruction cuz why not
 def recurP(lst, end, bound):
     if end < 0 or lst[end] < bound:
         return end, None
@@ -118,6 +118,26 @@ def print_tree(node, indent=0):
         print_tree(node.right, indent + 4)
         print(" " * indent + f"{node.val}")
         print_tree(node.left, indent + 4)
+
+'''
+Q3: re-write a remove_all(lst, val) func
+such that it has linear runtime (instead of n^2)
+I'll also add that it should be const extra space
+(we can easily do a dumb comprehension that uses linear space)
+
+approach: linear scan with bubbling, two pointer
+'''
+def remove_all(lst, val):
+    top = 0
+    for i in range(len(lst)):
+        if lst[i] != val:   # keep only non-val elements
+            lst[top] = lst[i]
+            top += 1
+    del lst[top:]   #remove trailing junk
+
+#stupid approach to check result only
+def dumb_remove_all(lst, val):
+    lst[:] = [each for each in lst if each != val]
 
 # test code
 if __name__ == "__main__":
@@ -163,3 +183,16 @@ if __name__ == "__main__":
     print_tree(root)
     print("\n------------------------------------------------\n")
     print_tree(rootP)
+
+    print("=========End of Q2 Start of Q3===================")
+
+    lst = [9,7,13,1,5,13,11,15]
+    dupLst = lst.copy()
+    val = 13    #try: single occur, diverse data type, multi occur, non-occur
+    remove_all(lst, val)
+    dumb_remove_all(dupLst, val)
+    if dupLst == lst:
+        print("Q3: all tests passed")
+    else:
+        print("Q3: mistake.")
+
