@@ -93,7 +93,7 @@ def recur(lst, ind, bound):
         return ind, None  # return pair of curr ind pos and the cur node
     root_val = lst[ind]
     # node = TreeNode(root_val)
-    root_ind, left = recur(lst, ind + 1,
+    root_ind, left = recur(lst, ind + 1,    #scan forward one at a time
                            root_val)  # left traversal until either end of list or reach node of value above bound
     root_ind, right = recur(lst, root_ind, bound)  # root_ind updated by left recurse, bound not.
     return root_ind, Node(root_val, left, right)  # we only interested in the second in the pair
@@ -152,6 +152,23 @@ def bst_from_preorder(pre):
 
     return build(float("-inf"), float("inf"))
 
+'''
+after interview with prof Tal, he prefers a
+sub-optimal solution that might be closer
+to the scope of the class
+call it: passing in ind 0 and length of lst (upperbound exclusive)
+'''
+
+def subOptimal(lst, start, end):
+    if start>=end:   #strictly greater than
+        return None
+    local = Node(lst[start])
+    subStart = start+1
+    while subStart < end and lst[subStart] < lst[start]:    #we skip to the end of left subtree
+        subStart +=1
+    local.left = subOptimal(lst, start+1, subStart)
+    local.right = subOptimal(lst, subStart, end)
+    return local
 
 '''
 Q3: re-write a remove_all(lst, val) func
@@ -169,7 +186,7 @@ def remove_all(lst, val):
         if lst[i] != val:  # keep only non-val elements
             lst[top] = lst[i]
             top += 1
-    del lst[top:]  # remove trailing junk
+    del lst[top:]  # remove trailing junk, alternatively lst = lst[:top]
 
 
 # stupid approach to check result only
@@ -218,10 +235,12 @@ if __name__ == "__main__":
     postorder = [1, 5, 3, 7, 11, 15, 13, 9]
     root = bstFromPreorder(preorder)
     rootP = bstFromPostorder(postorder)
+    rootS = subOptimal(preorder, 0, len(preorder))
     print_tree(root)
     print("\n------------------------------------------------\n")
     print_tree(rootP)
-
+    print("\n------------------------------------------------\n")
+    print_tree(rootS)
     print("=========End of Q2 Start of Q3===================")
 
     lst = [9, 7, 13, 1, 5, 13, 11, 15]
