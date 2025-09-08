@@ -47,6 +47,15 @@ each single element in this partial block requires (4** floor(logBase4Ofn)) + 1 
 let's set variable t = (4** floor(logBase4Ofn)) #(which is what chatgpt did in the code fix),
 we simply add (n-4**t+1)(t+1) to the sigma function result
 
+the logic: eg: n = 30
+formula catches full blocks [1,3] and [4,15]
+partial block calculate the total cost of [16, 30] note this partial block require operation 3 times,
+which can be simply calculated as t+1 (t being the per-element cost of the highest full block, in 
+this case the elements in block [4-15])
+and we simply have n-4**t+1 such elements.
+
+add them up then overall result floor div by 2 and we have final answer
+
 So I was actually very, very close to getting the actual solution. Yikes!
 '''
 
