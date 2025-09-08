@@ -1871,16 +1871,47 @@ def q162(arr):
                 r = mid - 1
     return l
 
+#super simple impelementation of heap for algoII hmk
+def heapify(arr):
+    bumper = len(arr)//2 - 1
+    while bumper > 0:
+        localBumper = bumper
+        while True:
+            left = 2*bumper+1
+            right = 2*bumper+2
+            smallest = localBumper
+            if left < len(arr) and arr[left] < arr[smallest]:
+                smallest = left
+            if right < len(arr) and arr[right] < arr[smallest]:
+                smallest = right
+
+            if smallest == localBumper:
+                break #nothing to do
+
+            arr[smallest], arr[localBumper] = arr[localBumper], arr[smallest]
+        bumper -= 1
+
+class D:
+    def __init__(self, name = "string", age = 0):
+        self.name = name
+        self.age = age
+    def __str__(self):
+        return self.name + "\t lol"
+    def __iadd__(self, other):
+
+        return self
+
+
 # test code
 if __name__ == '__main__':
-    seed = 2
-    potions = [_ for _ in range(19,0,-1)]
-    threshold = 11
-    # print(binaryTally(seed, potions, threshold))
-    spells = [15,8,19]
-    potions = [38,36,23]
-    success = 328
-    print(q2300(spells, potions, success))
+    # seed = 2
+    # potions = [_ for _ in range(19,0,-1)]
+    # threshold = 11
+    # # print(binaryTally(seed, potions, threshold))
+    # spells = [15,8,19]
+    # potions = [38,36,23]
+    # success = 328
+    # print(q2300(spells, potions, success))
     # arr = [31,25,72,79,74,65,84,91,18,59,27,9,81,33,17,58]
     # k = 11
     # c = 2
@@ -1888,3 +1919,12 @@ if __name__ == '__main__':
     # # for i in range(0,-3,-1):
     # #     print(i, end = " ")
     # print(3|5)
+    # arr = [3,7,15,4,25,1,20,8]
+    # heapify(arr)
+    # print(arr)
+    aD=  D(1)
+    anotherD = D(2)
+    # print(type(aD.name))
+    aD+= anotherD
+    print(aD.name)
+
