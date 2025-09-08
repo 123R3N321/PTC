@@ -17,12 +17,12 @@ def prefix_total(n: int) -> int:
     if n <= 0:
         return 0
     # floor(log_4 n) via float, then correct at most one step to remove FP drift
-    t = int(math.log(n, 4))
+    t = int(math.log(n, 4)) #this is just floor(log base 4 of n)
     p = 4 ** t
-    if p > n:              # rare under-shoot
-        t -= 1; p //= 4
-    elif 4 * p <= n:       # rare over-shoot
-        t += 1; p *= 4
+    # if p > n:              # rare under-shoot, due to float point drift, not mathematical but CS in nature
+    #     t -= 1; p //= 4
+    # elif 4 * p <= n:       # rare over-shoot, also machine error not mathematical
+    #     t += 1; p *= 4
     # full completed 4-blocks (your sigma) + partial top block
     full_blocks = sigma(t)              # safe: t is small integer
     return full_blocks + (n - p + 1) * (t + 1)
