@@ -1901,6 +1901,13 @@ class D:
 
         return self
 
+def recur(num_str, place):
+	if not num_str: #""
+		return 0
+	return (2**place)*int(num_str[-1])+recur(num_str[:-1],place+1)
+
+def binary(num_str):
+    return recur(num_str, 0)
 
 # test code
 if __name__ == '__main__':
@@ -1922,9 +1929,12 @@ if __name__ == '__main__':
     # arr = [3,7,15,4,25,1,20,8]
     # heapify(arr)
     # print(arr)
-    aD=  D(1)
-    anotherD = D(2)
-    # print(type(aD.name))
-    aD+= anotherD
-    print(aD.name)
+    # aD=  D(1)
+    # anotherD = D(2)
+    # # print(type(aD.name))
+    # aD+= anotherD
+    # print(aD.name)
+    # print("------------------")
 
+
+    # return self. decimal() < other.decimal()
