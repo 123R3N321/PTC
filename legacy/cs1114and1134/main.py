@@ -105,6 +105,11 @@ def preorder(nestedLst,res):
             preorder(each,res)
         else:
             res.append(each)
+
+
+
+
+
 import copy
 if __name__ == "__main__":
     # lst = ['a','b','c','d']
